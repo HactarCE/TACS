@@ -1,2 +1,2 @@
 # TACS
-Totally Accurate Curling Simulator for the Video Game Design event at Technology Student Association
+Totally Accurate Curling Simulator by Video Game Design Team 2365-1 for 2018 Technology Student Association
