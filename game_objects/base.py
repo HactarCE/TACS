@@ -1,12 +1,9 @@
 import pygame
-import colors
 import layers
-import text_engine
-import utils
 
-# TODO fix blitting logic
+__all__ = ['Drawable', 'Rotatable']
 
-class GameObject(object):
+class Drawable(object):
     def __init__(self, surface):
         self.parent = None
         self.surf = surface
@@ -146,67 +143,7 @@ class GameObject(object):
     def touching_mouse(self):
         return self.transform_rect(self.surf.get_rect()).collidepoint(pygame.mouse.get_pos())
 
-class Display(GameObject):
-    def __init__(self, *args, **kwargs):
-        super().__init__(pygame.display.set_mode(*args, **kwargs))
-
-    def blit_on_parent(self, area=None):
-        if area:
-            pygame.display.update(area)
-        else:
-            pygame.display.flip()
-
-class Text(GameObject):
-    def __init__(self, *args, **kwargs):
-        super().__init__(text_engine.render_text(*args, **kwargs))
-
-class TextButton(GameObject):
-    def __init__(self, font, text, click_handler,
-                 fg=colors.BLACK, bg=colors.WHITE,
-                 fg_hover=None, bg_hover=None,
-                 fg_click=None, bg_click=None,
-                 *args, **kwargs):
-        if not fg_hover:
-            fg_hover = fg
-        if not bg_hover:
-            bg_hover = bg
-        if not fg_click:
-            fg_click = fg_hover
-        if not bg_click:
-            bg_click = bg_hover
-        self.idle_surf = text_engine.render_text(font, text, fg=fg, bg=bg, *args, **kwargs)
-        self.hover_surf = text_engine.render_text(font, text, fg=fg_hover, bg=bg_hover, *args, **kwargs)
-        self.click_surf = text_engine.render_text(font, text, fg=fg_click, bg=bg_click, *args, **kwargs)
-        self.click_handler = click_handler
-        self.pressed = False
-        super().__init__(self.idle_surf)
-
-    def update(self):
-        super().update()
-        new_surf = self.idle_surf
-        if self.touching_mouse():
-            if self.pressed:
-                new_surf = self.click_surf
-            elif not pygame.mouse.get_pressed()[0]:
-                new_surf = self.hover_surf
-        if new_surf is not self.surf:
-            self.surf = new_surf
-            self.invalidate()
-
-    def handle_event(self, ev):
-        handled = super().handle_event(ev)
-        if ev.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP) and ev.button == 1:
-            if ev.type is pygame.MOUSEBUTTONDOWN and self.touching_mouse():
-                self.pressed = True
-                return True
-            if ev.type is pygame.MOUSEBUTTONUP and self.pressed:
-                if self.pressed:
-                    self.click_handler()
-                    self.pressed = False
-                    return True
-        return handled
-
-class Rotatable(GameObject):
+class Rotatable(Drawable):
     def __init__(self, image_name_pattern, angle_increment=15):
         self.angle_increment = angle_increment
         self.surfs = [pygame.image.load(image_name_pattern.format(i)) for i in range(0, 90, angle_increment)]
