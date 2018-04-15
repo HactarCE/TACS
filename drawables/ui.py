@@ -11,7 +11,7 @@ class Text(Drawable):
         super().__init__(text_engine.render_text(*args, **kwargs))
 
 class TextButton(Drawable):
-    def __init__(self, font, text, click_handler,
+    def __init__(self, text, click_handler, font,
                  fg=colors.BLACK, bg=colors.WHITE,
                  fg_hover=None, bg_hover=None,
                  fg_click=None, bg_click=None,
@@ -24,9 +24,9 @@ class TextButton(Drawable):
             fg_click = fg_hover
         if not bg_click:
             bg_click = bg_hover
-        self.idle_surf = text_engine.render_text(font, text, fg=fg, bg=bg, *args, **kwargs)
-        self.hover_surf = text_engine.render_text(font, text, fg=fg_hover, bg=bg_hover, *args, **kwargs)
-        self.click_surf = text_engine.render_text(font, text, fg=fg_click, bg=bg_click, *args, **kwargs)
+        self.idle_surf = text_engine.render_text(text, font, fg=fg, bg=bg, *args, **kwargs)
+        self.hover_surf = text_engine.render_text(text, font, fg=fg_hover, bg=bg_hover, *args, **kwargs)
+        self.click_surf = text_engine.render_text(text, font, fg=fg_click, bg=bg_click, *args, **kwargs)
         self.click_handler = click_handler
         self.pressed = False
         super().__init__(self.idle_surf)
@@ -50,8 +50,8 @@ class TextButton(Drawable):
                 self.pressed = True
                 return True
             if ev.type is pygame.MOUSEBUTTONUP and self.pressed:
-                if self.pressed:
+                if self.touching_mouse():
                     self.click_handler()
-                    self.pressed = False
-                    return True
+                self.pressed = False
+                return True
         return handled

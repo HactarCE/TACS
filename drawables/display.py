@@ -10,6 +10,6 @@ class Display(Drawable):
 
     def blit_on_parent(self, area=None):
         if area:
-            pygame.display.update(area)
+            pygame.display.update(area.clip(self.rect))
         else:
             pygame.display.flip()

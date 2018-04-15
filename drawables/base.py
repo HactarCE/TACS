@@ -1,7 +1,7 @@
 import pygame
 import layers
 
-__all__ = ['Drawable', 'Rotatable']
+__all__ = ['Drawable', 'Rotatable', 'SolidColor']
 
 class Drawable(object):
     def __init__(self, surface):
@@ -10,10 +10,8 @@ class Drawable(object):
         self.comp_surf = surface.copy()
         self.old_rect = None
         self.rect = surface.get_rect()
-        self.children = []
-        self.layers = [[] for i in range(layers.LAYER_COUNT)]
         self.invalidated_rects = []
-        self.invalidate()
+        self.remove_all_children()
 
     #region Movement
     def move(self, offset):
@@ -23,8 +21,7 @@ class Drawable(object):
         self.rect = self.surf.get_rect().move(pos)
 
     def move_center_to(self, pos):
-        new_pos = tuple(pos[i] - self.rect[i + 2] // 2 for i in range(2))
-        self.rect = self.surf.get_rect().move(new_pos)
+        self.move_to(tuple(pos[i] - self.rect[i + 2] // 2 for i in range(2)))
     #endregion
 
     #region Children
@@ -33,6 +30,7 @@ class Drawable(object):
             self.children.append(child)
             self.layers[layer].append(child)
         child.parent = self
+        self.invalidate()
 
     def remove_child(self, child):
         if child in self.children:
@@ -41,6 +39,11 @@ class Drawable(object):
             if child in layer:
                 layer.remove(child)
         child.parent = None
+        self.invalidate()
+
+    def remove_all_children(self):
+        self.children = []
+        self.layers = [[] for i in range(layers.LAYER_COUNT)]
     #endregion
 
     #region Events
@@ -86,8 +89,8 @@ class Drawable(object):
                     child.redraw_if_needed()
                     for rect in self.invalidated_rects:
                         if rect.colliderect(child.rect):
-                            r = rect.move((-child.rect.left, -child.rect.top))
-                            child.blit_on_parent(r.clip(child.rect))
+                            r = rect.clip(child.rect).move((-child.rect.left, -child.rect.top))
+                            child.blit_on_parent(r)
             for r in self.invalidated_rects:
                 self.blit_on_parent(r)
             self.invalidated_rects = []
@@ -96,10 +99,10 @@ class Drawable(object):
 
     def blit_on_parent(self, area=None):
         # area is a Rect in local space
-        if not area:
-            area = self.surf.get_rect()
         if self.parent:
-            self.parent.surf.blit(self.surf, area.move(self.rect.topleft), area)
+            if not area:
+                area = self.surf.get_rect()
+            self.parent.surf.blit(self.surf, self.rect, area)
     #endregion
 
     #region Transformations
@@ -166,3 +169,9 @@ class Rotatable(Drawable):
         b = round((self.rot - a) / 90) * 90
         self.surf = pygame.transform.rotate(self.surfs[round(a // 15)], b)
         super().invalidate()
+
+class SolidColor(Drawable):
+    def __init__(self, color, size):
+        s = pygame.Surface(size)
+        s.fill(color)
+        super().__init__(s)

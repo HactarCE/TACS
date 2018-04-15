@@ -20,11 +20,11 @@ def get_font(font):
     else:
         raise Exception(f'font "{font}" not found')
 
-def render_text(font, text, fg=colors.BLACK, bg=None, align=ALIGN_LEFT):
+def render_text(text, font, fg=colors.BLACK, bg=None, align=ALIGN_LEFT, antialias=True, **kwargs):
     f = get_font(font)
     if isinstance(text, str):
         text = [text]
-    line_surfs = [f.render(line, True, fg, bg) for line in text]
+    line_surfs = [f.render(line, antialias, fg, bg) for line in text]
     height = sum(s.get_height() for s in line_surfs)
     width = max(s.get_width() for s in line_surfs)
     surf = pygame.Surface((width, height), pygame.SRCALPHA, 32)
@@ -37,7 +37,7 @@ def render_text(font, text, fg=colors.BLACK, bg=None, align=ALIGN_LEFT):
         h += line_surf.get_height()
     return surf
 
-def wrap_text(font, text, max_width):
+def wrap_text(text, font, max_width, **kwargs):
     f = get_font(font)
     remaining = text
     words = re.findall(r'(\W*)(\w+)')
@@ -49,5 +49,5 @@ def wrap_text(font, text, max_width):
             lines[-1].append(words.pop(0).group(0))
     return '\n'.join(lines)
 
-def render_wrapped_text(font, text, max_width, *args, **kwargs):
-    return render_text(font_name, wrap_text(font, text, max_width), *args, **kwargs)
+def render_wrapped_text(text, font, max_width, *args, **kwargs):
+    return render_text(font, wrap_text(text, font, max_width), *args, **kwargs)
