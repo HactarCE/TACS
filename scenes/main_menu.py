@@ -14,7 +14,8 @@ class MainMenu(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        bg = drawables.SolidColor(colors.ICE, self.disp.rect.size)
+        # bg = drawables.SolidColor(colors.ICE, self.disp.rect.size)
+        bg = drawables.Image('img/ice.png')
         self.add(bg, layers.BG)
 
         title = drawables.Text(TITLE_WRAPPED, **styles.TITLE)

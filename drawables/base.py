@@ -1,7 +1,7 @@
 import pygame
 import layers
 
-__all__ = ['Drawable', 'Rotatable', 'SolidColor']
+__all__ = ['Drawable', 'Rotatable', 'SolidColor', 'Image']
 
 class Drawable(object):
     def __init__(self, surface):
@@ -175,3 +175,10 @@ class SolidColor(Drawable):
         s = pygame.Surface(size)
         s.fill(color)
         super().__init__(s)
+
+class Image(Drawable):
+    def __init__(self, image_path, convert=True):
+        img_surf = pygame.image.load(image_path)
+        if convert:
+            img_surf = img_surf.convert()
+        super().__init__(img_surf)
