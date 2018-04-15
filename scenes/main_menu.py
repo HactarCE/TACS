@@ -44,10 +44,11 @@ class MainMenu(Scene):
             buttons[i].move_center_to((mid_x, button_y + (button_height + button_spacing) * i + button_height // 2))
 
     def buttonpush_play(self):
+        self.hide()
         print('play!')
 
     def buttonpush_options(self):
         print('options!')
 
     def buttonpush_quit(self):
-        self.quit()
+        self.leave()

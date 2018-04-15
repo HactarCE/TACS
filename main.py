@@ -1,29 +1,27 @@
 #!/bin/env python3
 
-import sys
 import pygame
-from text_engine import ALIGN_CENTER, render_text
-import drawables
 import scenes
-import layers
-import colors
+from drawables import Display
 
 TITLE = 'Totally Accurate Curling Simulator'
 
 pygame.init()
 
-# SIZE = width, height = 1600, 900
-# FLAGS = pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.NOFRAME
-SIZE = width, height = 1920, 1080
-FLAGS = pygame.FULLSCREEN | pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.NOFRAME
-disp = drawables.Display(SIZE, FLAGS)
+try:
 
-pygame.display.set_caption(TITLE)
+    # SIZE = width, height = 1600, 900
+    # FLAGS = pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.NOFRAME
+    SIZE = width, height = 1920, 1080
+    FLAGS = pygame.FULLSCREEN | pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.NOFRAME
 
-main_menu = scenes.MainMenu(disp)
+    pygame.display.set_caption(TITLE)
 
-main_menu.show()
+    scene_manager = scenes.SceneManager(Display(SIZE, FLAGS))
+    scenes.MainMenu(scene_manager).init()
 
-# Main loop
-while True:
-    main_menu.tick()
+    scene_manager.run('MainMenu')
+
+finally:
+
+    pygame.quit()

@@ -3,7 +3,7 @@ from drawables import Drawable
 import pygame
 import sys
 
-__all__ = ['Scene']
+__all__ = ['SceneManager', 'Scene']
 
 def is_quit_event(ev):
     if ev.type is pygame.QUIT:
@@ -15,13 +15,45 @@ def is_quit_event(ev):
             return True
     return False
 
+class SceneManager(object):
+    def __init__(self, display):
+        self.disp = display
+        self.scene_stack = []
+        self.scenes = {}
+
+    def add_scene(self, name, scene):
+        self.scenes[name] = scene
+
+    def enter(self, scene):
+        if scene in self.scenes:
+            scene = self.scenes[scene]
+        if self.scene_stack:
+            self.scene_stack[-1].hide()
+        self.scene_stack.append(scene)
+        scene.show()
+
+    def leave(self):
+        self.scene_stack.pop().hide()
+        self.active_scene = None
+
+    def run(self, root_scene):
+        self.enter(root_scene)
+        while self.scene_stack:
+            self.active_scene = self.scene_stack[-1]
+            while self.active_scene:
+                self.active_scene.tick()
+
 class Scene(object):
     FRAMERATE = 60
     CLOCK = pygame.time.Clock()
 
-    def __init__(self, disp):
-        self.disp = disp
+    def __init__(self, scene_manager):
+        self.scene_manager = scene_manager
+        self.disp = scene_manager.disp
         self.drawables = []
+
+    def init(self, name=None):
+        self.scene_manager.add_scene(name or self.__class__.__name__, self)
 
     def add(self, drawable, layer):
         self.drawables.append((drawable, layer))
@@ -34,11 +66,20 @@ class Scene(object):
         for drawable, layer in self.drawables:
             self.disp.add_child(drawable, layer)
 
+    def leave(self):
+        self.scene_manager.leave()
+
+    def enter(self, scene):
+        self.scene_manager.enter(scene)
+
+    def hide(self):
+        pass
+
     def tick(self):
         # Handle events
         for event in pygame.event.get():
             if is_quit_event(event):
-                self.quit(event)
+                self.scene_manager.leave_scene()
             else:
                 self.disp.handle_event(event)
         # Update objects
@@ -51,6 +92,3 @@ class Scene(object):
 
     def handle_event(self, ev):
         pass
-
-    def quit(self, ev=None):
-        sys.exit()
