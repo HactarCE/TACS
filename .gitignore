@@ -1,3 +1,6 @@
+# Fonts not allowed to be redistributed
+font/DAGGERSQUARE*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
