@@ -1,4 +1,5 @@
 from .base import *
-from .display import *
-from .ui import *
 from .curling import *
+from .display import *
+from .pannable import *
+from .ui import *

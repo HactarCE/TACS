@@ -30,6 +30,7 @@ class SceneManager(object):
         if self.scene_stack:
             self.scene_stack[-1].hide()
         self.scene_stack.append(scene)
+        self.active_scene = scene
         scene.show()
 
     def leave(self):
@@ -38,10 +39,11 @@ class SceneManager(object):
 
     def run(self, root_scene):
         self.enter(root_scene)
-        while self.scene_stack:
-            self.active_scene = self.scene_stack[-1]
-            while self.active_scene:
-                self.active_scene.tick()
+        while self.active_scene:
+            self.active_scene.tick()
+            if (not self.active_scene) and self.scene_stack:
+                self.active_scene = self.scene_stack[-1]
+                self.active_scene.show()
 
 class Scene(object):
     FRAMERATE = 60
@@ -75,20 +77,31 @@ class Scene(object):
     def hide(self):
         pass
 
+    def pre_update(self):
+        pass
+
+    def post_update(self):
+        pass
+
     def tick(self):
         # Handle events
         for event in pygame.event.get():
-            if is_quit_event(event):
-                self.scene_manager.leave_scene()
-            else:
-                self.disp.handle_event(event)
+            self.handle_event(event)
         # Update objects
+        self.pre_update()
         self.disp.pre_update()
         self.disp.update()
         self.disp.post_update()
+        self.post_update()
         # Render screen
         self.disp.redraw_if_needed()
         self.CLOCK.tick(self.FRAMERATE)
 
     def handle_event(self, ev):
-        pass
+        if is_quit_event(ev):
+            self.leave()
+        elif ev.type is pygame.KEYDOWN and ev.key is pygame.K_f:
+            print(self.CLOCK.get_fps())
+            return True
+        else:
+            return self.disp.handle_event(ev)

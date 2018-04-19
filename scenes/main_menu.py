@@ -1,4 +1,5 @@
 from .base import Scene
+from .game import Game
 from text_engine import ALIGN_CENTER
 import colors
 import drawables
@@ -9,8 +10,8 @@ __all__ = ['MainMenu']
 
 TITLE_WRAPPED = ["Totally Accurate", "Curling Simulator"]
 
-class MainMenu(Scene):
 
+class MainMenu(Scene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -25,10 +26,14 @@ class MainMenu(Scene):
         for label, action in (('Play', self.buttonpush_play),
                               ('Options', self.buttonpush_options),
                               ('Quit', self.buttonpush_quit)):
-            b = drawables.TextButton(label, action, **styles.MAIN_MENU_BUTTON)
+            style = styles.MAIN_MENU_QUIT_BUTTON if label == 'Quit' else styles.MAIN_MENU_BUTTON
+            b = drawables.TextButton(label, action, **style)
             buttons.append(b)
             self.add(b, layers.UI_FG)
 
+        self.temp = buttons[1]
+
+        # this is probably way more complicated than it needs to be
         mid_x = self.disp.rect.width // 2
         title_height = title.rect.height
         button_height = buttons[0].rect.height
@@ -41,11 +46,11 @@ class MainMenu(Scene):
 
         title.move_center_to((mid_x, title_y + title_height // 2))
         for i in range(len(buttons)):
-            buttons[i].move_center_to((mid_x, button_y + (button_height + button_spacing) * i + button_height // 2))
+            buttons[i].move_center_to(
+                (mid_x, button_y + (button_height + button_spacing) * i + button_height // 2))
 
     def buttonpush_play(self):
-        self.hide()
-        print('play!')
+        self.enter('Game')
 
     def buttonpush_options(self):
         print('options!')

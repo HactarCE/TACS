@@ -14,3 +14,9 @@ MAIN_MENU_BUTTON = {
     'fg_click': hex(0x0000df),
     'antialias': False
 }
+
+MAIN_MENU_QUIT_BUTTON = {
+    **MAIN_MENU_BUTTON,
+    'fg_hover': hex(0x7f0000),
+    'fg_click': hex(0xdf0000)
+}
