@@ -1,7 +1,9 @@
+import utils
+
 import pygame
 import layers
 
-__all__ = ['Drawable', 'Rotatable', 'SolidColor', 'Image']
+__all__ = ['Drawable', 'SolidColor', 'Image']
 
 class Drawable(object):
     def __init__(self, surface):
@@ -10,7 +12,7 @@ class Drawable(object):
         if surface:
             self.comp_surf = surface.copy()
             self.rect = surface.get_rect()
-            self.old_rect = self.rect
+            self.old_rect = self.rect.copy()
         self.invalidated_rects = []
         self.remove_all_children()
 
@@ -20,7 +22,7 @@ class Drawable(object):
         self.finish_move()
 
     def move_to(self, pos):
-        self.rect = self.surf.get_rect().move(pos)
+        self.rect.topleft = pos
         self.finish_move()
 
     def move_center_to(self, pos):
@@ -77,14 +79,20 @@ class Drawable(object):
     def pre_update(self):
         for child in self.children:
             child.pre_update()
+        for subsurf_child in self.subsurf_children:
+            subsurf_child.pre_update()
 
     def update(self):
         for child in self.children:
             child.update()
+        for subsurf_child in self.subsurf_children:
+            subsurf_child.update()
 
     def post_update(self):
         for child in self.children:
             child.post_update()
+        for subsurf_child in self.subsurf_children:
+            subsurf_child.post_update()
     #endregion
 
     #region Drawing
@@ -94,24 +102,23 @@ class Drawable(object):
             area = self.surf.get_rect()
         if self.parent:
             self.parent.invalidate(self.transform_rect_to_parent(area))
-        # TODO maybe add logic for combining Rects, or at least removing Rects
-        # that are completely contained by others
         self.invalidated_rects.append(area)
 
     def redraw_if_needed(self):
+        for child in self.subsurf_children:
+            child.redraw_if_needed()
         if self.invalidated_rects:
+            invalidated_rects = utils.optimize_rects(self.invalidated_rects)
             if self.surf:
-                for r in self.invalidated_rects:
-                    self.comp_surf.blit(self.surf, r)
+                for r in invalidated_rects:
+                    self.comp_surf.blit(self.surf, r, r)
             for layer in self.layers:
                 for child in layer:
                     child.redraw_if_needed()
-                    for rect in self.invalidated_rects:
+                    for rect in invalidated_rects:
                         if rect.colliderect(child.rect):
                             r = child.transform_rect_from_parent(rect.clip(child.rect))
                             child.blit_on_parent(r)
-            for child in self.subsurf_children:
-                child.redraw_if_needed()
             self.invalidated_rects = []
             return True
         return False
@@ -123,9 +130,7 @@ class Drawable(object):
                 area = area.clip(self.surf.get_rect())
             else:
                 area = self.surf.get_rect()
-            # TODO if you're having issues, try messing with these lines
-            # self.parent.comp_surf.blit(self.comp_surf, area.move(self.rect.topleft), area)
-            self.parent.comp_surf.blit(self.comp_surf, self.rect, area)
+            self.parent.comp_surf.blit(self.comp_surf, area.move(self.rect.topleft), area)
     #endregion
 
     #region Transformations
@@ -177,31 +182,6 @@ class Drawable(object):
     def touching_mouse(self):
         return self.transform_rect(self.surf.get_rect()).collidepoint(pygame.mouse.get_pos())
 
-class Rotatable(Drawable):
-    def __init__(self, image_name_pattern, angle_increment=15):
-        self.angle_increment = angle_increment
-        self.surfs = [pygame.image.load(image_name_pattern.format(i)) for i in range(0, 90, angle_increment)]
-        self.rot = 0
-        super().__init__(self.surfs[0])
-
-    #region Rotation
-    def set_rotation(self, angle):
-        self.rot = angle
-        self.invalidate()
-
-    def get_rotation(self):
-        return self.rot
-
-    def rotate(self, angle):
-        self.rot = (self.rot + angle) % 360
-        a = round(self.rot / self.angle_increment) * self.angle_increment % 90
-        b = round((self.rot - a) / 90) * 90
-        self.surf = pygame.transform.rotate(self.surfs[round(a // 15)], b)
-        self.invalidate()
-    #endregion
-
-    # TODO Transformations (probably not necessary)
-
 class SolidColor(Drawable):
     def __init__(self, color, size):
         s = pygame.Surface(size)
@@ -209,8 +189,10 @@ class SolidColor(Drawable):
         super().__init__(s)
 
 class Image(Drawable):
-    def __init__(self, image_path, convert=True):
+    def __init__(self, image_path, convert_alpha=False):
         img_surf = pygame.image.load(image_path)
-        if convert:
+        if convert_alpha:
+            img_surf = img_surf.convert_alpha()
+        else:
             img_surf = img_surf.convert()
         super().__init__(img_surf)

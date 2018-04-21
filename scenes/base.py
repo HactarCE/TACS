@@ -1,5 +1,7 @@
 from drawables import Drawable
 
+from utils import FRAMERATE
+
 import pygame
 import sys
 
@@ -46,13 +48,13 @@ class SceneManager(object):
                 self.active_scene.show()
 
 class Scene(object):
-    FRAMERATE = 60
     CLOCK = pygame.time.Clock()
 
     def __init__(self, scene_manager):
         self.scene_manager = scene_manager
         self.disp = scene_manager.disp
         self.drawables = []
+        self.subsurf_drawables = []
 
     def init(self, name=None):
         self.scene_manager.add_scene(name or self.__class__.__name__, self)
@@ -60,13 +62,19 @@ class Scene(object):
     def add(self, drawable, layer):
         self.drawables.append((drawable, layer))
 
+    def add_subsurf(self, subsurf_drawable, rect):
+        self.subsurf_drawables.append((subsurf_drawable, rect))
+
     def remove(self, drawable):
         self.drawables = [d for d in self.drawables if d[0] is not drawable]
+        self.subsurf_drawables = [d for d in self.subsurf_drawables if d[0] is not drawable]
 
     def show(self):
         self.disp.remove_all_children()
         for drawable, layer in self.drawables:
             self.disp.add_child(drawable, layer)
+        for subsurf_drawable, rect in self.subsurf_drawables:
+            self.disp.allocate_subsurf(subsurf_drawable, rect)
 
     def leave(self):
         self.scene_manager.leave()
@@ -95,7 +103,7 @@ class Scene(object):
         self.post_update()
         # Render screen
         self.disp.redraw_if_needed()
-        self.CLOCK.tick(self.FRAMERATE)
+        self.CLOCK.tick(FRAMERATE)
 
     def handle_event(self, ev):
         if is_quit_event(ev):

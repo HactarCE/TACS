@@ -21,8 +21,8 @@ try:
     scenes.MainMenu(scene_manager).init()
     scenes.Game(scene_manager).init()
 
-    scene_manager.run('MainMenu')
-    # scene_manager.run('Game')
+    # scene_manager.run('MainMenu')
+    scene_manager.run('Game')
 
 finally:
 

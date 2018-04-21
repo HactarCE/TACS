@@ -40,22 +40,25 @@ class Pannable(Drawable):
     def pan(self, dx, dy):
         self.pan_x += dx
         self.pan_y += dy
-        # self.finish_pan()
+        self.finish_pan()
 
     def pan_to(self, x, y):
         self.pan_x, self.pan_y = x, y
-        # self.finish_pan()
+        self.finish_pan()
+
+    def pan_to_game_object(self, game_object):
+        self.pan_center_to(*game_object.rect.center)
+
+    def pan_center_to(self, x, y):
+        self.pan_x = x - self.window_rect.width // 2
+        self.pan_y = y - self.window_rect.height // 2
+        self.finish_pan()
 
     def get_pan_pos(self):
         return (self.pan_x, self.pan_y)
 
     def get_inverse_pan_pos(self):
         return (-self.pan_x, -self.pan_y)
-
-    def pan_center_to(self, x, y):
-        self.pan_x = x - self.window_rect.width // 2
-        self.pan_y = y - self.window_rect.height // 2
-        # self.finish_pan()
 
     def finish_pan(self):
         self.pan_x = clamp(self.pan_x, 0, self.pan_size[0] - self.window_rect.width)
@@ -93,19 +96,13 @@ class Pannable(Drawable):
         # invalidated_rects is a list of Rects in local space (within panning content)
         if not area:
             area = pygame.Rect((0, 0), self.pan_size)
-        self.invalidated_rects.append(area)
+        super().invalidate(area)
 
     def redraw_if_needed(self):
         rects = self.invalidated_rects
         if super().redraw_if_needed():
             for r in rects:
-                self.blit_on_parent(r)
-
-    # def draw_rect_on_parent(self, rect, color=(255, 0, 0)):
-    #     # area is in window space
-    #     if self.parent:
-    #         rect = rect.clip(pygame.Rect((0, 0), self.window_rect.size))
-    #         self.parent_subsurf.fill(color, rect)
+                self.blit_on_parent(r.move((-self.pan_x, -self.pan_y)))
 
     def blit_on_parent(self, area=None):
         # area is in window space
@@ -115,7 +112,6 @@ class Pannable(Drawable):
             else:
                 area = pygame.Rect((0, 0), self.window_rect.size)
             self.parent_subsurf.blit(self.comp_surf.subsurface(self.get_visible_rect()), area, area)
-            # self.force_parent_blit(area)
 
     def force_parent_blit(self, area=None):
         # area is in window space
