@@ -1,5 +1,7 @@
-import pygame
 import colors
+
+import pygame
+import re
 
 ALIGN_LEFT   = lambda text_w, surf_w: 0
 ALIGN_CENTER = lambda text_w, surf_w: (surf_w - text_w) / 2
@@ -9,7 +11,8 @@ pygame.font.init()
 
 fonts = {
     'title': pygame.font.Font('font/DAGGERSQUARE.otf', 96),
-    'big_button': pygame.font.Font('font/DAGGERSQUARE.otf', 48)
+    'big_button': pygame.font.Font('font/DAGGERSQUARE.otf', 48),
+    'bottom_panel': pygame.font.Font('font/DAGGERSQUARE.otf', 36)
 }
 
 def get_font(font):
@@ -40,13 +43,13 @@ def render_text(text, font, fg=colors.BLACK, bg=None, align=ALIGN_LEFT, antialia
 def wrap_text(text, font, max_width, **kwargs):
     f = get_font(font)
     remaining = text
-    words = re.findall(r'(\W*)(\w+)')
+    words = re.findall(r'(\W*)(\w+)', text)
     lines = ['']
-    while remaining:
-        if font.size(lines[-1] + words[0].group(0)) > max_width:
-            lines.append(words.pop(0).group(1))
+    while words:
+        if f.size(lines[-1] + ''.join(words[0]))[0] > max_width:
+            lines.append(words.pop(0)[1])
         else:
-            lines[-1].append(words.pop(0).group(0))
+            lines[-1] += ''.join(words.pop(0))
     return '\n'.join(lines)
 
 def render_wrapped_text(text, font, max_width, *args, **kwargs):

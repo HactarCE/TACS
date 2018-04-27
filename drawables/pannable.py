@@ -76,7 +76,6 @@ class Pannable(Drawable):
                 old_visible_rect = self.get_visible_rect()
                 self.parent_subsurf.scroll(-dx, -dy)
                 preserved_rect = old_visible_rect.clip(self.get_visible_rect()).move(self.get_inverse_pan_pos())
-                # self.force_parent_blit(preserved_rect)
                 if dy > 0:
                     update_rect(0, h, w, -dy)
                 elif dy < 0:
@@ -87,7 +86,7 @@ class Pannable(Drawable):
                     update_rect(0, preserved_rect.top, -dx, preserved_rect.height)
             else:
                 self.blit_on_parent()
-            self.force_parent_blit()
+            self.parent.invalidate(self.rect)
         self.last_pan = self.pan_x, self.pan_y
     #endregion
 
@@ -112,14 +111,6 @@ class Pannable(Drawable):
             else:
                 area = pygame.Rect((0, 0), self.window_rect.size)
             self.parent_subsurf.blit(self.comp_surf.subsurface(self.get_visible_rect()), area, area)
-
-    def force_parent_blit(self, area=None):
-        # area is in window space
-        if area:
-            area = area.move(self.window_rect.topleft)
-        else:
-            area = self.window_rect
-        self.parent.blit_on_parent(area)
     #endregion
 
     #region Transformations

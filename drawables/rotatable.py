@@ -8,6 +8,7 @@ class Rotatable(Drawable):
     def __init__(self, surface):
         self.source_surf = surface
         self.rot = 0
+        self.old_rot = 0
         super().__init__(self.source_surf)
 
     #region Rotation
@@ -22,8 +23,12 @@ class Rotatable(Drawable):
         self.set_rotation(self.rot + angle)
 
     def finish_rotation(self):
-        self.surf = pygame.transform.rotate(self.source_surf, self.rot)
-        self.invalidate()
+        if self.rot != self.old_rot:
+            self.old_rot = self.rot
+            self.comp_surf = self.surf = pygame.transform.rotate(self.source_surf, self.rot)
+            self.rect = self.surf.get_rect().move(self.rect.topleft)
+            self.invalidate()
+            self.finish_move()
     #endregion
 
     # TODO Transformations (probably not necessary)
@@ -38,5 +43,6 @@ class StepperRotatable(Rotatable):
     def finish_rotation(self):
         a = round(self.rot / self.angle_increment) * self.angle_increment % 90
         b = round((self.rot - a) / 90) * 90
-        self.surf = pygame.transform.rotate(self.source_surfs[round(a // 15)], b)
+        self.surf = pygame.transform.rotate(self.source_surfs[round(a // self.angle_increment)], b)
+        self.rect = self.surf.get_rect().move(self.rect.topleft)
         self.invalidate()

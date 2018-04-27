@@ -24,7 +24,7 @@ class MainMenu(Scene):
 
         buttons = []
         for label, action in (('Play', self.buttonpush_play),
-                              ('Options', self.buttonpush_options),
+                              ('About', self.buttonpush_about),
                               ('Quit', self.buttonpush_quit)):
             style = styles.MAIN_MENU_QUIT_BUTTON if label == 'Quit' else styles.MAIN_MENU_BUTTON
             b = drawables.TextButton(label, action, **style)
@@ -52,8 +52,8 @@ class MainMenu(Scene):
     def buttonpush_play(self):
         self.enter('Game')
 
-    def buttonpush_options(self):
-        print('options!')
+    def buttonpush_about(self):
+        self.enter('about')
 
     def buttonpush_quit(self):
         self.leave()

@@ -51,7 +51,7 @@ class Drawable(object):
     def remove_child(self, child):
         if child in self.children:
             self.children.remove(child)
-        for layer in layers:
+        for layer in self.layers:
             if child in layer:
                 layer.remove(child)
         child.parent = None

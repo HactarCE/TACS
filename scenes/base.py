@@ -88,6 +88,9 @@ class Scene(object):
     def pre_update(self):
         pass
 
+    def update(self):
+        pass
+
     def post_update(self):
         pass
 
@@ -98,6 +101,7 @@ class Scene(object):
         # Update objects
         self.pre_update()
         self.disp.pre_update()
+        self.update()
         self.disp.update()
         self.disp.post_update()
         self.post_update()
